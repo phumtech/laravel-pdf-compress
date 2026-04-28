@@ -10,6 +10,8 @@ use PhumTech\PdfCompress\Exceptions\BinaryNotFoundException;
 use PhumTech\PdfCompress\Exceptions\CompressionException;
 use PhumTech\PdfCompress\Objects\CompressionResult;
 
+use Symfony\Component\Process\ExecutableFinder;
+
 class PdfCompress
 {
     protected ?string $input = null;
@@ -101,26 +103,50 @@ class PdfCompress
         return $this->input;
     }
 
+    protected function resolveBinPath(string $bin, array $windowsFallbacks = []): string
+    {
+        $finder = new ExecutableFinder();
+        
+        $path = $finder->find($bin);
+        if ($path) {
+            return $path;
+        }
+
+        if (DIRECTORY_SEPARATOR === '\\') {
+            foreach ($windowsFallbacks as $fallback) {
+                $path = $finder->find($fallback);
+                if ($path) {
+                    return $path;
+                }
+            }
+        }
+
+        return $bin;
+    }
+
     protected function resolveDriver()
     {
         $config = config('pdfcompress');
         $driverName = $this->driver ?? $config['default'];
 
+        $qpdfBin = $this->resolveBinPath($config['drivers']['qpdf']['bin'] ?? 'qpdf', ['qpdf.exe']);
+        $gsBin = $this->resolveBinPath($config['drivers']['ghostscript']['bin'] ?? 'gs', ['gswin64c', 'gswin32c', 'gswin64', 'gswin32']);
+
         if ($driverName === 'auto') {
-            $qpdf = new QpdfDriver($config['drivers']['qpdf']['bin']);
+            $qpdf = new QpdfDriver($qpdfBin, $config['drivers']['qpdf']['timeout'] ?? 60);
             if ($qpdf->isAvailable()) return $qpdf;
             
-            $gs = new GhostscriptDriver($config['drivers']['ghostscript']['bin'], $config['quality']);
+            $gs = new GhostscriptDriver($gsBin, $config['quality'] ?? [], $config['drivers']['ghostscript']['timeout'] ?? 120);
             if ($gs->isAvailable()) return $gs;
 
             throw new BinaryNotFoundException("Neither qpdf nor ghostscript binaries were found on the system.");
         }
 
         if ($driverName === 'qpdf') {
-            return new QpdfDriver($config['drivers']['qpdf']['bin'], $config['drivers']['qpdf']['timeout']);
+            return new QpdfDriver($qpdfBin, $config['drivers']['qpdf']['timeout'] ?? 60);
         }
 
-        return new GhostscriptDriver($config['drivers']['ghostscript']['bin'], $config['quality'], $config['drivers']['ghostscript']['timeout']);
+        return new GhostscriptDriver($gsBin, $config['quality'] ?? [], $config['drivers']['ghostscript']['timeout'] ?? 120);
     }
 
     protected function generateOutputPath(string $input): string
