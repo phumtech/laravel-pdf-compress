@@ -1,0 +1,45 @@
+<?php
+
+namespace PhumTech\PdfCompress\Drivers;
+
+use PhumTech\PdfCompress\Contracts\CompressionDriver;
+use Symfony\Component\Process\Process;
+
+class GhostscriptDriver implements CompressionDriver
+{
+    public function __construct(
+        protected string $bin, 
+        protected array $qualityMap,
+        protected int $timeout = 120
+    ) {}
+
+    public function compress(string $input, string $output, string $quality = 'balanced', array $options = []): bool
+    {
+        $gsQuality = $this->qualityMap[$quality] ?? '/ebook';
+
+        $command = [
+            $this->bin,
+            '-sDEVICE=pdfwrite',
+            '-dCompatibilityLevel=1.4',
+            '-dPDFSETTINGS=' . $gsQuality,
+            '-dNOPAUSE',
+            '-dQUIET',
+            '-dBATCH',
+            '-sOutputFile=' . $output,
+            $input
+        ];
+
+        $process = new Process($command);
+        $process->setTimeout($this->timeout);
+        $process->run();
+
+        return $process->isSuccessful();
+    }
+
+    public function isAvailable(): bool
+    {
+        $process = new Process([$this->bin, '--version']);
+        $process->run();
+        return $process->isSuccessful();
+    }
+}
