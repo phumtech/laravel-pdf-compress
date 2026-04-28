@@ -1,49 +1,53 @@
-# Laravel PDF Compressor
+# Laravel PDF Compress
 
-### Fast, Lightweight & Production Ready PDF Optimization Tool
+### Fast, Lightweight & Production-Ready PDF Optimization Tool for Laravel
 
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/phumtech/laravel-pdf-compress.svg?style=flat-square)](https://packagist.org/packages/phumtech/laravel-pdf-compress)
 [![Laravel Version Support](https://img.shields.io/badge/laravel-10%2F11%2F12-red.svg?style=flat-square)](https://laravel.com)
 [![PHP Version Support](https://img.shields.io/badge/php-8.1%2B-8892bf.svg?style=flat-square)](https://php.net)
 [![Total Downloads](https://img.shields.io/packagist/dt/phumtech/laravel-pdf-compress.svg?style=flat-square)](https://packagist.org/packages/phumtech/laravel-pdf-compress)
-[![License](https://img.shields.io/packagist/l/phumtech/laravel-pdf-compress.svg?style=flat-square)](LICENSE.md)
+[![License](https://img.shields.io/packagist/l/phumtech/laravel-pdf-compress.svg?style=flat-square)](LICENSE)
 
-**Laravel PDF Compressor** is a high-performance, SEO-optimized package designed to reduce PDF file sizes seamlessly within Laravel applications. It bridges the gap between PHP and powerful system-level tools like **qpdf** and **Ghostscript**, ensuring reliable compression that native PHP libraries often fail to achieve.
+**Laravel PDF Compress** is a high-performance, SEO-optimized package designed to reduce and optimize PDF file sizes seamlessly within Laravel applications. By bridging the gap between PHP and powerful system-level binaries like **qpdf** and **Ghostscript**, it ensures reliable compression that native PHP libraries often fail to achieve. 
+
+Whether you need lossless structural optimization for archiving or high-ratio lossy compression for web delivery, this package provides a fluent, Laravel-friendly API to handle your PDF compression needs effortlessly.
 
 ---
 
 ## 🚀 Features
 
-*   **Optimized PDF Compression**: Choose between lossless structural optimization and high-ratio lossy compression.
-*   **Dual Engine Architecture**: Supports both `qpdf` (fast/structural) and `Ghostscript` (maximum reduction).
-*   **Intelligent Auto-Detection**: Automatically finds binaries or falls back to your configured default.
-*   **Fluent Laravel API**: Elegant, readable syntax that follows Laravel's best practices.
-*   **Storage Integration**: Compress files directly from `Local`, `S3`, or any custom Laravel disks.
-*   **Queue & Batch Friendly**: Designed for background processing without memory leaks.
-*   **Detailed Results**: Returns before/after file sizes and percentage saved.
-*   **Quality Presets**: `low`, `balanced`, and `high` modes for easy configuration.
+* **Optimized PDF Compression**: Choose between lossless structural optimization and high-ratio lossy compression to suit your business logic.
+* **Dual Engine Architecture**: Supports both `qpdf` (fast, structural optimization) and `Ghostscript` (maximum size reduction).
+* **Intelligent Auto-Detection**: Automatically discovers binaries on your system or falls back to your configured defaults.
+* **Fluent Laravel API**: Elegant, readable, and chainable syntax that follows Laravel's best practices.
+* **Storage Integration**: Compress files directly from `Local`, `S3`, or any custom Laravel disks using native filesystem integration.
+* **Queue & Batch Friendly**: Memory-efficient execution designed for background processing and heavy workloads without memory leaks.
+* **Detailed Results**: Returns comprehensive compression objects including before/after file sizes, percentage saved, and execution paths.
+* **Quality Presets**: Built-in `low`, `balanced`, and `high` modes for rapid configuration.
 
 ---
 
 ## 🛠 Requirements
 
-*   PHP 8.1 or higher
-*   Laravel 10, 11, or 12
-*   One or both of the following system binaries:
-    *   **qpdf** (Recommended for structural optimization)
-    *   **Ghostscript** (Recommended for high compression)
+* **PHP** 8.1 or higher
+* **Laravel** 10.x, 11.x, or 12.x
+* One or both of the following system binaries:
+  * **qpdf** (Recommended for lossless structural optimization)
+  * **Ghostscript** (Recommended for high compression and DPI reduction)
 
 ---
 
 ## 📦 Installation
 
-Install the package via composer:
+Install the package via Composer:
 
 ```bash
 composer require phumtech/laravel-pdf-compress
 ```
 
-### System Dependencies
+### System Dependencies Installation
+
+To use this package, you must install the underlying system binaries.
 
 #### Ubuntu / Debian
 ```bash
@@ -57,88 +61,127 @@ brew install qpdf ghostscript
 ```
 
 #### Windows
-1. Download **qpdf**: [releases](https://github.com/qpdf/qpdf/releases)
-2. Download **Ghostscript**: [downloads](https://ghostscript.com/releases/gsdnld.html)
-3. Ensure the `bin` folders are added to your System PATH.
+1. Download **qpdf**: [qpdf releases](https://github.com/qpdf/qpdf/releases)
+2. Download **Ghostscript**: [Ghostscript downloads](https://ghostscript.com/releases/gsdnld.html)
+3. Ensure the `bin` folders of both applications are added to your System PATH environment variable.
 
 ---
 
-## 📖 Quick Usage
+## 📖 Usage
+
+The package provides a fluent facade `PdfCompress` to handle your files.
 
 ### Basic Compression
+
+Optimize a PDF with default settings (automatically selects the best available driver):
+
 ```php
 use PhumTech\PdfCompress\Facades\PdfCompress;
 
-PdfCompress::input('document.pdf')
-    ->output('document-compressed.pdf')
+$result = PdfCompress::input('path/to/large-document.pdf')
+    ->output('path/to/optimized-document.pdf')
     ->compress();
+
+echo "Saved: {$result->percentage}%";
 ```
 
-### Using Laravel Storage
+### Using Laravel Storage Disks
+
+You can seamlessly compress files located on your Laravel storage disks (e.g., S3, local, public):
+
 ```php
-PdfCompress::storage('invoices/inv-001.pdf')
-    ->disk('s3')
+$result = PdfCompress::storage('invoices/inv-001.pdf')
+    ->disk('s3') // Optional: defaults to your default filesystem disk
     ->quality('balanced')
     ->compress();
 ```
 
-### Getting Results
-```php
-$result = PdfCompress::input($file)->compress();
+### Advanced Configuration
 
-echo "Saved: " . $result->percentage . "%";
-echo "New size: " . $result->formattedNewSize;
+Force a specific driver or quality preset:
+
+```php
+PdfCompress::input('heavy-report.pdf')
+    ->driver('ghostscript') // 'qpdf' or 'ghostscript'
+    ->quality('low') // 'low', 'balanced', or 'high'
+    ->output('light-report.pdf')
+    ->compress();
+```
+
+### Handling the Compression Result
+
+The `compress()` method returns a `CompressionResult` object containing valuable metrics:
+
+```php
+$result = PdfCompress::input('original.pdf')->compress();
+
+if ($result->isSuccessful()) {
+    echo "Original Size: " . $result->formattedOriginalSize;
+    echo "New Size: " . $result->formattedNewSize;
+    echo "Reduction: " . $result->percentage . "%";
+    echo "Saved to: " . $result->outputPath;
+}
 ```
 
 ---
 
 ## ⚙️ Configuration
 
-Publish the config file:
+You can publish the configuration file to customize default behaviors, paths, and presets:
+
 ```bash
 php artisan vendor:publish --tag="pdfcompress-config"
 ```
 
-The config allows you to set default drivers, paths to binaries, and custom quality presets.
+This will create a `config/pdfcompress.php` file where you can define:
+- Default compression driver.
+- Custom binary paths (useful for shared hosting or Docker environments).
+- Ghostscript DPI settings for each quality preset.
 
 ---
 
-## 🏗 Architecture
+## 🏗 Architecture & Performance
 
-This package uses a **Driver Pattern**. It executes system binaries via `Symfony/Process`, which is significantly more memory-efficient and reliable than PHP-only solutions for large PDF files.
+This package implements a **Driver Pattern**, executing system binaries via the robust `Symfony/Process` component. This architecture is significantly more memory-efficient and reliable than purely PHP-based PDF manipulation libraries (like FPDI/TCPDF or mPDF) when dealing with large files, preventing `Allowed memory size exhausted` errors.
 
 ---
 
 ## ❓ FAQ
 
 **Is it free?**
-Yes, it's open-source under the MIT license.
+Yes, it is entirely open-source under the MIT license.
 
 **Does it work offline?**
-Yes, all compression happens on your own server.
+Absolutely. All compression is executed locally on your server using system binaries. No data is sent to third-party APIs.
 
-**What if qpdf is missing?**
-The package will attempt to use Ghostscript if installed, or throw a clear `BinaryNotFoundException`.
+**What happens if a binary is missing?**
+If you enforce a driver (e.g., `qpdf`) and it's not installed, the package throws a clear `BinaryNotFoundException`. If using auto-detect, it will safely fall back to the next available driver.
 
 ---
 
 ## 🔒 Security
 
-*   Uses `Symfony/Process` to escape all arguments, preventing shell injection.
-*   No file data is sent to external APIs.
+* **No Shell Injection**: Uses `Symfony/Process` to properly escape all CLI arguments.
+* **Data Privacy**: No file data is transmitted to external servers or cloud APIs. Everything stays on your machine.
 
 ---
 
-## 🔍 SEO Keywords
-Laravel PDF compressor, PDF optimizer, compress PDF Laravel package, qpdf Laravel, ghostscript PDF compression, reduce PDF size Laravel, PHP PDF compression tool, PhumTech PDF.
+## 🧪 Testing
+
+```bash
+composer test
+```
 
 ---
 
 ## 🤝 Contributing
-Please see [CONTRIBUTING](CONTRIBUTING.md) for details.
+
+Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for details.
 
 ---
 
 ## 📄 License
-The MIT License (MIT). Please see [License File](LICENSE.md) for more information.
+
+The MIT License (MIT). Please see the [License File](LICENSE) for more information.
+
 Copyright (c) 2026 **PhumTech**.
