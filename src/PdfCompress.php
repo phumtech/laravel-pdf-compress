@@ -107,11 +107,39 @@ class PdfCompress
     {
         $finder = new ExecutableFinder();
         
+        // 1. Try to find in system PATH
         $path = $finder->find($bin);
         if ($path) {
             return $path;
         }
 
+        // 2. Try to find in project/package root (bundled binaries)
+        $roots = [realpath(__DIR__ . '/..')];
+        if (function_exists('base_path')) {
+            $roots[] = base_path();
+        }
+        
+        // Check for specific qpdf version directory if it exists
+        if ($bin === 'qpdf' || in_array('qpdf.exe', $windowsFallbacks)) {
+            foreach ($roots as $root) {
+                if (!$root) continue;
+                
+                $qpdfPaths = [
+                    $root . '/qpdf_12.3.2/bin/qpdf.exe',
+                    $root . '/bin/qpdf/bin/qpdf.exe',
+                    $root . '/qpdf/bin/qpdf.exe',
+                    $root . '/vendor/phumtech/laravel-pdf-compress/qpdf_12.3.2/bin/qpdf.exe',
+                ];
+
+                foreach ($qpdfPaths as $qpdfPath) {
+                    if (file_exists($qpdfPath)) {
+                        return $qpdfPath;
+                    }
+                }
+            }
+        }
+
+        // 3. Fallback to windows specific names in system PATH
         if (DIRECTORY_SEPARATOR === '\\') {
             foreach ($windowsFallbacks as $fallback) {
                 $path = $finder->find($fallback);

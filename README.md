@@ -63,7 +63,8 @@ brew install qpdf ghostscript
 #### Windows
 1. Download **qpdf**: [qpdf releases](https://github.com/qpdf/qpdf/releases)
 2. Download **Ghostscript**: [Ghostscript downloads](https://ghostscript.com/releases/gsdnld.html)
-3. Ensure the `bin` folders of both applications are added to your System PATH environment variable.
+3. **Option A (System Path)**: Ensure the `bin` folders of both applications are added to your System PATH environment variable.
+4. **Option B (Bundled)**: Simply place the extracted **qpdf** folder (e.g., `qpdf_12.3.2`) or a `bin/qpdf` folder in your project root. The package will automatically detect and use it.
 
 ---
 

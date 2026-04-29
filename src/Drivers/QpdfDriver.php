@@ -11,10 +11,10 @@ class QpdfDriver implements CompressionDriver
 
     public function compress(string $input, string $output, string $quality = 'balanced', array $options = []): bool
     {
-        $command = [$this->bin, '--linearize', '--replace-input', $input, '--output', $output];
+        $command = [$this->bin, '--linearize', $input, $output];
         
         if ($input === $output) {
-            $command = [$this->bin, '--linearize', $input, '--replace-input'];
+            $command = [$this->bin, '--linearize', '--replace-input', $input];
         }
 
         $process = new Process($command);

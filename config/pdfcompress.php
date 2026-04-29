@@ -12,6 +12,12 @@ return [
 
     'drivers' => [
         'qpdf' => [
+            /*
+            | If the binary is not in your system PATH, you can provide the full path here.
+            | The package will also automatically check for binaries in:
+            | - {project_root}/qpdf_12.3.2/bin/qpdf.exe
+            | - {project_root}/bin/qpdf/bin/qpdf.exe
+            */
             'bin' => env('QPDF_BIN_PATH', 'qpdf'),
             'timeout' => 60,
         ],
