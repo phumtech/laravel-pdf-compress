@@ -2,6 +2,11 @@
 
 All notable changes to `phumtech/laravel-pdf-compress` will be documented in this file.
 
+## 1.0.3 - 2026-04-29
+
+- Improved error reporting by capturing and displaying binary error output in exceptions
+- Refined driver logic to throw more descriptive CompressionException
+
 ## 1.0.2 - 2026-04-29
 
 - Enhanced binary detection with glob support for versioned folders (e.g., qpdf_12.3.2)

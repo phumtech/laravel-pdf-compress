@@ -73,9 +73,7 @@ class PdfCompress
 
         $driver = $this->resolveDriver();
 
-        if (!$driver->compress($inputPath, $outputPath, $this->quality)) {
-            throw new CompressionException("Failed to compress PDF using " . get_class($driver));
-        }
+        $driver->compress($inputPath, $outputPath, $this->quality);
 
         $result = new CompressionResult(
             $inputPath,

@@ -33,7 +33,13 @@ class GhostscriptDriver implements CompressionDriver
         $process->setTimeout($this->timeout);
         $process->run();
 
-        return $process->isSuccessful();
+        if (!$process->isSuccessful()) {
+            throw new \PhumTech\PdfCompress\Exceptions\CompressionException(
+                "Ghostscript failed with error: " . $process->getErrorOutput() . " (Exit Code: " . $process->getExitCode() . ")"
+            );
+        }
+
+        return true;
     }
 
     public function isAvailable(): bool
