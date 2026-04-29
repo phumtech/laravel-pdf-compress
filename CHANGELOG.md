@@ -2,7 +2,7 @@
 
 All notable changes to `phumtech/laravel-pdf-compress` will be documented in this file.
 
-## 1.0.1 - 2026-04-29
+## 1.0.2 - 2026-04-29
 
 - Added support for bundled qpdf binaries in the project root for Windows users
 - Improved binary detection logic to automatically find local binaries
