@@ -119,21 +119,52 @@ class PdfCompress
             $roots[] = base_path();
         }
         
-        // Check for specific qpdf version directory if it exists
-        if ($bin === 'qpdf' || in_array('qpdf.exe', $windowsFallbacks)) {
-            foreach ($roots as $root) {
-                if (!$root) continue;
-                
+        foreach ($roots as $root) {
+            if (!$root) continue;
+
+            // Check for qpdf
+            if ($bin === 'qpdf' || in_array('qpdf.exe', $windowsFallbacks)) {
                 $qpdfPaths = [
-                    $root . '/qpdf_12.3.2/bin/qpdf.exe',
                     $root . '/bin/qpdf/bin/qpdf.exe',
                     $root . '/qpdf/bin/qpdf.exe',
-                    $root . '/vendor/phumtech/laravel-pdf-compress/qpdf_12.3.2/bin/qpdf.exe',
                 ];
+
+                // Check versioned folders like qpdf_12.3.2
+                $versionedFolders = glob($root . '/qpdf*/bin/qpdf.exe');
+                if ($versionedFolders) {
+                    $qpdfPaths = array_merge($qpdfPaths, $versionedFolders);
+                }
+
+                // Check vendor folder
+                $qpdfPaths[] = $root . '/vendor/phumtech/laravel-pdf-compress/bin/qpdf/bin/qpdf.exe';
+                $vendorVersioned = glob($root . '/vendor/phumtech/laravel-pdf-compress/qpdf*/bin/qpdf.exe');
+                if ($vendorVersioned) {
+                    $qpdfPaths = array_merge($qpdfPaths, $vendorVersioned);
+                }
 
                 foreach ($qpdfPaths as $qpdfPath) {
                     if (file_exists($qpdfPath)) {
                         return $qpdfPath;
+                    }
+                }
+            }
+
+            // Check for Ghostscript
+            if ($bin === 'gs' || in_array('gswin64c.exe', $windowsFallbacks)) {
+                $gsPaths = [
+                    $root . '/bin/gs/bin/gswin64c.exe',
+                    $root . '/gs/bin/gswin64c.exe',
+                    $root . '/bin/gs/bin/gswin32c.exe',
+                ];
+
+                $versionedGs = glob($root . '/gs*/bin/gswin*c.exe');
+                if ($versionedGs) {
+                    $gsPaths = array_merge($gsPaths, $versionedGs);
+                }
+
+                foreach ($gsPaths as $gsPath) {
+                    if (file_exists($gsPath)) {
+                        return $gsPath;
                     }
                 }
             }

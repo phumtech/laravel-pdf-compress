@@ -38,8 +38,18 @@ class GhostscriptDriver implements CompressionDriver
 
     public function isAvailable(): bool
     {
+        // Try -v first as it's common for Ghostscript
+        $process = new Process([$this->bin, '-v']);
+        $process->run();
+        
+        if ($process->isSuccessful()) {
+            return true;
+        }
+
+        // Fallback to --version
         $process = new Process([$this->bin, '--version']);
         $process->run();
+        
         return $process->isSuccessful();
     }
 }
